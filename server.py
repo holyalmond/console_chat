@@ -1,22 +1,17 @@
 import socket
 import threading
 from datetime import datetime
+from colorama import init, Fore, Style
+
+init(autoreset=True)
 
 HOST = '0.0.0.0'
 PORT = 57890
 
 clients = {}
 
-def broadcast(message):
-    for client in clients:
-        try:
-            client.sendall(message.encode())
-        except:
-            client.close()
-            del clients[client]
-
-def no_sender_broadcast(message, sender_socket):
-    for client in clients:
+def broadcast(message, sender_socket=None):
+    for client in clients.copy():
         if client != sender_socket:
             try:
                 client.sendall(message.encode())
@@ -30,8 +25,8 @@ def handle_client(client_socket, addr):
         nickname = client_socket.recv(1024).decode().strip()
         clients[client_socket] = nickname
 
-        no_sender_broadcast(f"{nickname} joined", client_socket)
-        client_socket.send("Welcome!".encode())
+        broadcast(Fore.GREEN + f"{nickname} joined" + Style.RESET_ALL, client_socket)
+        client_socket.send((Fore.LIGHTGREEN_EX + "Welcome!" + Style.RESET_ALL).encode())
 
         while True:
             message = client_socket.recv(1024).decode()
@@ -41,7 +36,10 @@ def handle_client(client_socket, addr):
                 break
             else:
                 timestamp = datetime.now().strftime("%H:%M")
-                broadcast(f"[{timestamp}] {nickname}: {message}", client_socket)
+                broadcast(
+                    f"{Fore.LIGHTBLACK_EX}[{timestamp}]{Style.RESET_ALL} "
+                    f"{Fore.BLUE}{nickname}{Style.RESET_ALL}: {message}"
+                )
 
     except Exception as e:
         print(f"Error: {str(e)}")
@@ -49,7 +47,7 @@ def handle_client(client_socket, addr):
         if client_socket in clients:
             nickname = clients[client_socket]
             del clients[client_socket]
-            no_sender_broadcast(f"{nickname} left the chat", client_socket)
+            broadcast(Fore.GREEN + f"{nickname} left the chat" + Style.RESET_ALL, client_socket)
         client_socket.close()
         
 def start_server():

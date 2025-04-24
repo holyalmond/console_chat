@@ -1,14 +1,13 @@
 import socket
 import threading
-import sys
+from colorama import init, Fore, Style
+
+from utils.visuals import clear_input_line
+
+init(autoreset=True)
 
 HOST = 'localhost'
 PORT = 57890
-
-def clear_input_line():
-    sys.stdout.write('\x1b[1A')
-    sys.stdout.write('\x1b[2K')
-    sys.stdout.flush()
 
 def recieve_messages(sock):
     while True:
@@ -17,22 +16,15 @@ def recieve_messages(sock):
             if message:
                 print(f"{message}")
         except:
-            print("Disconnected from server.")
+            print(Fore.RED + "Disconnected from server." + Style.RESET_ALL)
             break
 
 def send_messages(sock):
     while True:
         try:
             message = input()
-
-            if message.strip().lower() == "/quit":
-                print("Disconnecting from server...")
-                sock.close()
-                break
-
             clear_input_line()
             sock.sendall(message.encode())
-            
         except:
             break
 
@@ -40,7 +32,7 @@ def start_client():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((HOST, PORT))
 
-    print("Connected to chat server. Type /quit to exit")
+    print(Fore.MAGENTA + "Connected to chat server. Type /quit to exit" + Style.RESET_ALL)
     thread = threading.Thread(target=recieve_messages, args=(sock, ), daemon=True)
     thread.start()
 
