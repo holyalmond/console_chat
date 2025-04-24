@@ -23,6 +23,12 @@ def send_messages(sock):
     while True:
         try:
             message = input()
+            
+            if message.strip().lower() == "/quit":
+                print(Fore.RED + "Disconnecting from server..." + Style.RESET_ALL)
+                sock.close()
+                break
+
             clear_input_line()
             sock.sendall(message.encode())
         except:
