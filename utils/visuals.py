@@ -6,9 +6,7 @@ def clear_input_line():
     sys.stdout.write('\x1b[2K')
     sys.stdout.flush()
 
-def get_color(color):
-    color = color.lower()
-    color_map = {
+color_map = {
         'black': Fore.BLACK,
         'red': Fore.RED,
         'green': Fore.GREEN,
@@ -16,7 +14,9 @@ def get_color(color):
         'blue': Fore.BLUE,
         'magenta': Fore.MAGENTA,
         'cyan': Fore.CYAN,
-        'white': Fore.WHITE,
-        'reset': Fore.RESET
+        'white': Fore.WHITE
     }
+
+def get_color(color):
+    color = color.lower()
     return color_map.get(color, Fore.RESET)
