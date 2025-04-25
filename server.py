@@ -29,15 +29,12 @@ def broadcast(message, sender_socket=None):
 
 def handle_client(client_socket, addr):
     try:
-        clients[client_socket] = {}
-
         client_socket.send("Enter your nickname:".encode())
         nickname = client_socket.recv(1024).decode().strip()
         while nickname in used_nicknames:
             client_socket.send("Nickname is already taken. Choose other one:".encode())
             nickname = client_socket.recv(1024).decode().strip()
         
-        clients[client_socket]["nickname"] = nickname
         used_nicknames.add(nickname)
 
         free_colors = [color for color in color_map if not color in used_colors]
@@ -46,9 +43,10 @@ def handle_client(client_socket, addr):
         while color not in free_colors:
             client_socket.send(f"Invalid or taken color. Choose from: {', '.join(free_colors)}:".encode())
             color = client_socket.recv(1024).decode().strip().lower()
-        
-        clients[client_socket]["color"] = color
+
         used_colors.add(color)
+
+        clients[client_socket] = {"nickname": nickname, "color": color}
 
         broadcast(Fore.GREEN + f"{nickname} joined" + Style.RESET_ALL, client_socket)
         client_socket.send((Fore.LIGHTGREEN_EX + "Welcome!" + Style.RESET_ALL).encode())
