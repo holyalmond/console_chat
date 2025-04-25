@@ -3,6 +3,8 @@ import threading
 from datetime import datetime
 from colorama import init, Fore, Style
 
+from utils.visuals import get_color
+
 init(autoreset=True)
 
 HOST = '0.0.0.0'
@@ -21,9 +23,15 @@ def broadcast(message, sender_socket=None):
 
 def handle_client(client_socket, addr):
     try:
+        clients[client_socket] = {}
+
         client_socket.send("Enter your nickname: ".encode())
         nickname = client_socket.recv(1024).decode().strip()
-        clients[client_socket] = nickname
+        clients[client_socket]["nickname"] = nickname
+
+        client_socket.send("Choose your color: ".encode())
+        color = client_socket.recv(1024).decode().strip()
+        clients[client_socket]["color"] = color
 
         broadcast(Fore.GREEN + f"{nickname} joined" + Style.RESET_ALL, client_socket)
         client_socket.send((Fore.LIGHTGREEN_EX + "Welcome!" + Style.RESET_ALL).encode())
@@ -36,16 +44,17 @@ def handle_client(client_socket, addr):
                 break
             else:
                 timestamp = datetime.now().strftime("%H:%M")
+                msg_color = get_color(clients[client_socket]["color"])
                 broadcast(
                     f"{Fore.LIGHTBLACK_EX}[{timestamp}]{Style.RESET_ALL} "
-                    f"{Fore.BLUE}{nickname}{Style.RESET_ALL}: {message}"
+                    f"{msg_color}{nickname}{Style.RESET_ALL}: {message}"
                 )
 
     except Exception as e:
         print(f"Error: {str(e)}")
     finally:
         if client_socket in clients:
-            nickname = clients[client_socket]
+            nickname = clients[client_socket]["nickname"]
             del clients[client_socket]
             broadcast(Fore.GREEN + f"{nickname} left the chat" + Style.RESET_ALL, client_socket)
         client_socket.close()
