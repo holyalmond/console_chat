@@ -13,6 +13,9 @@ def recieve_messages(sock):
     while True:
         try:
             message = sock.recv(1024).decode()
+            if not message:
+                break
+
             if message.endswith(":"):
                 clear_input_line()
                 print(f"{message} ", end="", flush=True)
