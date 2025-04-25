@@ -4,6 +4,7 @@ from datetime import datetime
 from colorama import init, Fore, Style
 
 from utils.visuals import get_color
+from utils.visuals import color_map
 
 init(autoreset=True)
 
@@ -11,6 +12,8 @@ HOST = '0.0.0.0'
 PORT = 57890
 
 clients = {}
+color_map = color_map
+used_colors = set()
 
 def broadcast(message, sender_socket=None):
     for client in clients.copy():
@@ -29,9 +32,15 @@ def handle_client(client_socket, addr):
         nickname = client_socket.recv(1024).decode().strip()
         clients[client_socket]["nickname"] = nickname
 
-        client_socket.send("Choose your color: ".encode())
+        free_colors = [color for color in color_map if not color in used_colors]
+        client_socket.send(f"Choose your color ({", ".join(free_colors)}): ".encode())
         color = client_socket.recv(1024).decode().strip()
+        while color not in free_colors:
+            client_socket.send(f"Invalid or taken color. Choose from: {', '.join(free_colors)}: ".encode())
+            color = client_socket.recv(1024).decode().strip().lower()
+        
         clients[client_socket]["color"] = color
+        used_colors.add(color)
 
         broadcast(Fore.GREEN + f"{nickname} joined" + Style.RESET_ALL, client_socket)
         client_socket.send((Fore.LIGHTGREEN_EX + "Welcome!" + Style.RESET_ALL).encode())
@@ -55,6 +64,8 @@ def handle_client(client_socket, addr):
     finally:
         if client_socket in clients:
             nickname = clients[client_socket]["nickname"]
+            color = clients[client_socket]["color"]
+            used_colors.discard(color)
             del clients[client_socket]
             broadcast(Fore.GREEN + f"{nickname} left the chat" + Style.RESET_ALL, client_socket)
         client_socket.close()
