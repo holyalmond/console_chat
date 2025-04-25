@@ -12,6 +12,9 @@ HOST = '0.0.0.0'
 PORT = 57890
 
 clients = {}
+
+used_nicknames = set()
+
 color_map = color_map
 used_colors = set()
 
@@ -30,11 +33,16 @@ def handle_client(client_socket, addr):
 
         client_socket.send("Enter your nickname: ".encode())
         nickname = client_socket.recv(1024).decode().strip()
+        while nickname in used_nicknames:
+            client_socket.send("Nickname is already taken".encode())
+            nickname = client_socket.recv(1024).decode().strip()
+        
         clients[client_socket]["nickname"] = nickname
+        used_nicknames.add(nickname)
 
         free_colors = [color for color in color_map if not color in used_colors]
         client_socket.send(f"Choose your color ({", ".join(free_colors)}): ".encode())
-        color = client_socket.recv(1024).decode().strip()
+        color = client_socket.recv(1024).decode().strip().lower()
         while color not in free_colors:
             client_socket.send(f"Invalid or taken color. Choose from: {', '.join(free_colors)}: ".encode())
             color = client_socket.recv(1024).decode().strip().lower()
@@ -63,9 +71,12 @@ def handle_client(client_socket, addr):
         print(f"Error: {str(e)}")
     finally:
         if client_socket in clients:
-            nickname = clients[client_socket]["nickname"]
-            color = clients[client_socket]["color"]
-            used_colors.discard(color)
+            nickname = clients[client_socket].get("nickname")
+            color = clients[client_socket].get("color")
+            if nickname:
+                used_nicknames.discard(nickname)
+            if color:
+                used_colors.discard(color)
             del clients[client_socket]
             broadcast(Fore.GREEN + f"{nickname} left the chat" + Style.RESET_ALL, client_socket)
         client_socket.close()
