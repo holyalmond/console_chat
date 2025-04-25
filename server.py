@@ -3,8 +3,7 @@ import threading
 from datetime import datetime
 from colorama import init, Fore, Style
 
-from utils.visuals import get_color
-from utils.visuals import color_map
+from utils.visuals import get_color, set_color
 
 init(autoreset=True)
 
@@ -14,8 +13,6 @@ PORT = 57890
 clients = {}
 
 used_nicknames = set()
-
-color_map = color_map
 used_colors = set()
 
 def broadcast(message, sender_socket=None):
@@ -37,14 +34,7 @@ def handle_client(client_socket, addr):
         
         used_nicknames.add(nickname)
 
-        free_colors = [color for color in color_map if not color in used_colors]
-        client_socket.send(f"Choose your color ({", ".join(free_colors)}):".encode())
-        color = client_socket.recv(1024).decode().strip().lower()
-        while color not in free_colors:
-            client_socket.send(f"Invalid or taken color. Choose from: {', '.join(free_colors)}:".encode())
-            color = client_socket.recv(1024).decode().strip().lower()
-
-        used_colors.add(color)
+        color = set_color(client_socket, used_colors)
 
         clients[client_socket] = {"nickname": nickname, "color": color}
 
@@ -59,10 +49,10 @@ def handle_client(client_socket, addr):
                 break
             else:
                 timestamp = datetime.now().strftime("%H:%M")
-                msg_color = get_color(clients[client_socket]["color"])
+                nickname_color = get_color(clients[client_socket]["color"])
                 broadcast(
                     f"{Fore.LIGHTBLACK_EX}[{timestamp}]{Style.RESET_ALL} "
-                    f"{msg_color}{nickname}{Style.RESET_ALL}: {message}"
+                    f"{nickname_color}{nickname}{Style.RESET_ALL}: {message}"
                 )
 
     except Exception as e:
