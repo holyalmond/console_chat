@@ -13,8 +13,11 @@ def recieve_messages(sock):
     while True:
         try:
             message = sock.recv(1024).decode()
-            if message:
-                print(f"{message}")
+            if message.endswith(":"):
+                clear_input_line()
+                print(f"{message} ", end="", flush=True)
+            else:
+                print(message)
         except:
             print(Fore.RED + "Disconnected from server." + Style.RESET_ALL)
             break

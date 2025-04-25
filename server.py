@@ -31,20 +31,20 @@ def handle_client(client_socket, addr):
     try:
         clients[client_socket] = {}
 
-        client_socket.send("Enter your nickname: ".encode())
+        client_socket.send("Enter your nickname:".encode())
         nickname = client_socket.recv(1024).decode().strip()
         while nickname in used_nicknames:
-            client_socket.send("Nickname is already taken".encode())
+            client_socket.send("Nickname is already taken. Choose other one:".encode())
             nickname = client_socket.recv(1024).decode().strip()
         
         clients[client_socket]["nickname"] = nickname
         used_nicknames.add(nickname)
 
         free_colors = [color for color in color_map if not color in used_colors]
-        client_socket.send(f"Choose your color ({", ".join(free_colors)}): ".encode())
+        client_socket.send(f"Choose your color ({", ".join(free_colors)}):".encode())
         color = client_socket.recv(1024).decode().strip().lower()
         while color not in free_colors:
-            client_socket.send(f"Invalid or taken color. Choose from: {', '.join(free_colors)}: ".encode())
+            client_socket.send(f"Invalid or taken color. Choose from: {', '.join(free_colors)}:".encode())
             color = client_socket.recv(1024).decode().strip().lower()
         
         clients[client_socket]["color"] = color
