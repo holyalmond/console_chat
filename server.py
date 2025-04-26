@@ -39,7 +39,7 @@ def handle_client(client_socket, addr):
         clients[client_socket] = {"nickname": nickname, "color": color}
 
         broadcast(Fore.GREEN + f"{nickname} joined" + Style.RESET_ALL, client_socket)
-        client_socket.send((Fore.LIGHTGREEN_EX + "Welcome!" + Style.RESET_ALL).encode())
+        client_socket.send((Fore.LIGHTGREEN_EX + "Welcome! Type /help to see available commands" + Style.RESET_ALL).encode())
 
         while True:
             message = client_socket.recv(1024).decode()
