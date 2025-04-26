@@ -3,6 +3,7 @@ import threading
 from colorama import init, Fore, Style
 
 from utils.visuals import clear_input_line
+from utils.commands import commands
 
 init(autoreset=True)
 
@@ -29,14 +30,18 @@ def send_messages(sock):
     while True:
         try:
             message = input()
-            
-            if message.strip().lower() == "/quit":
-                print(Fore.RED + "Disconnecting from server..." + Style.RESET_ALL)
-                sock.close()
-                break
-
-            clear_input_line()
-            sock.sendall(message.encode())
+            if message.startswith("/"):
+                parts = message[1:].split(maxsplit=1)
+                cmd = parts[0].lower()
+                args = parts[1] if len(parts) > 1 else ""
+                handler = commands.get(cmd)
+                if handler:
+                    handler(sock, args)
+                else:
+                    print(Fore.YELLOW + f"Unknown command: /{cmd}" + Style.RESET_ALL)
+            else:
+                clear_input_line()
+                sock.sendall(message.encode())
         except:
             break
 
@@ -44,7 +49,7 @@ def start_client():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((HOST, PORT))
 
-    print(Fore.MAGENTA + "Connected to chat server. Type /quit to exit" + Style.RESET_ALL)
+    print(Fore.MAGENTA + "Connected to chat server." + Style.RESET_ALL)
     thread = threading.Thread(target=recieve_messages, args=(sock, ), daemon=True)
     thread.start()
 
