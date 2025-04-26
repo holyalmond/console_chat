@@ -15,6 +15,18 @@ clients = {}
 used_nicknames = set()
 used_colors = set()
 
+def handle_online_users_request(client_socket):
+    try:
+        user_list = []
+        for info in clients.values():
+            nickname = info['nickname']
+            color = info['color']
+            user_list.append(f"{nickname}:{color}")
+        user_list_str = ",".join(user_list)
+        client_socket.sendall(f"@online_users {user_list_str}".encode())
+    except Exception as e:
+        print(f"Failed to send online users: {e}")
+
 def broadcast(message, sender_socket=None):
     for client in clients.copy():
         if client != sender_socket:
@@ -45,6 +57,9 @@ def handle_client(client_socket, addr):
             message = client_socket.recv(1024).decode()
             if not message:
                 break
+            
+            if message == "@request_online_users":
+                handle_online_users_request(client_socket)
             else:
                 timestamp = datetime.now().strftime("%H:%M")
                 nickname_color = get_color(clients[client_socket]["color"])

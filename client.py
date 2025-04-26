@@ -3,12 +3,14 @@ import threading
 from colorama import init, Fore, Style
 
 from utils.visuals import clear_input_line
-from utils.commands import commands
+from utils.commands import commands, print_online_users
 
 init(autoreset=True)
 
 HOST = 'localhost'
 PORT = 57890
+
+online_users = []
 
 def recieve_messages(sock):
     while True:
@@ -16,6 +18,13 @@ def recieve_messages(sock):
             message = sock.recv(1024).decode()
             if not message:
                 break
+            
+            if message.startswith("@online_users "):
+                users_string = message.replace("@online_users ", "")
+                users = users_string.split(",") if users_string else []
+                online_users.clear()
+                online_users.extend(users)
+                print_online_users(online_users)
 
             if message.endswith(":"):
                 clear_input_line()
