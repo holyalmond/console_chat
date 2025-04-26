@@ -82,4 +82,7 @@ def start_server():
         thread.start()
 
 if __name__ == "__main__":
-    start_server()
+    try:
+        start_server()
+    except KeyboardInterrupt:
+        print(f"\nServer stopped")
