@@ -14,7 +14,7 @@ def help_command(sock, *args):
     print(Fore.CYAN + "\nAvailable commands:" + Style.RESET_ALL)
     for cmd in commands.keys():
         print(f"/{cmd}")
-    print("\n")
+    print()
 
 @client_command("quit")
 def quit_command(sock, *args):
