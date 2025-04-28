@@ -3,7 +3,7 @@ import threading
 from colorama import init, Fore, Style
 
 from utils.visuals import clear_input_line
-from utils.commands import commands, print_online_users
+from commands.base import get_command
 
 init(autoreset=True)
 
@@ -19,13 +19,6 @@ def recieve_messages(sock):
             if not message:
                 break
             
-            if message.startswith("@online_users "):
-                users_string = message.replace("@online_users ", "")
-                users = users_string.split(",") if users_string else []
-                online_users.clear()
-                online_users.extend(users)
-                print_online_users(online_users)
-
             elif message.endswith(":"):
                 clear_input_line()
                 print(f"{message} ", end="", flush=True)
@@ -43,7 +36,7 @@ def send_messages(sock):
                 parts = message[1:].split(maxsplit=1)
                 cmd = parts[0].lower()
                 args = parts[1] if len(parts) > 1 else ""
-                handler = commands.get(cmd)
+                handler = get_command(cmd)
                 if handler:
                     handler(sock, args)
                 else:
