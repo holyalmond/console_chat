@@ -31,7 +31,7 @@ def print_online_users(users):
                 print(f"{get_color(color)}{nickname}{Style.RESET_ALL}")
             else:
                 print(user_info)
-        print("\n")
+        print()
     else:
         print("No users online.")
 

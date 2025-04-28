@@ -26,7 +26,7 @@ def recieve_messages(sock):
                 online_users.extend(users)
                 print_online_users(online_users)
 
-            if message.endswith(":"):
+            elif message.endswith(":"):
                 clear_input_line()
                 print(f"{message} ", end="", flush=True)
             else:
