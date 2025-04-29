@@ -1,62 +1,77 @@
 import socket
 import threading
-from colorama import init, Fore, Style
+import sys
+import select
+
+from colorama import Fore, Style
 
 from utils.visuals import clear_input_line
-from commands.base import get_command
 
-init(autoreset=True)
+HOST = '0.0.0.0'
+PORT = 9000
 
-HOST = 'localhost'
-PORT = 57890
+class ChatClient:
+    def __init__(self, host, port):
+        self.host = host
+        self.port = port
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.connected = False
 
-online_users = []
+    def log(self, text: str, color: str = None):
+        if color:
+            print(color + text + Style.RESET_ALL)
+        else:
+            print(text)
 
-def recieve_messages(sock):
-    while True:
-        try:
-            message = sock.recv(1024).decode()
-            if not message:
-                break
-            
-            elif message.endswith(":"):
-                clear_input_line()
-                print(f"{message} ", end="", flush=True)
-            else:
-                print(message)
-        except:
-            print(Fore.RED + "Disconnected from server." + Style.RESET_ALL)
-            break
+    def recieve_messages(self):
+        while self.connected:
+            try:
+                message = self.sock.recv(1024).decode()
+                if not message:
+                    self.connected = False
+                    break
 
-def send_messages(sock):
-    while True:
-        try:
-            message = input()
-            if message.startswith("/"):
-                parts = message[1:].split(maxsplit=1)
-                cmd = parts[0].lower()
-                args = parts[1] if len(parts) > 1 else ""
-                handler = get_command(cmd)
-                if handler:
-                    handler(sock, args)
+                if message.endswith(":"):
+                    clear_input_line()
+                    print(f"{message} ", end="", flush=True)
                 else:
-                    print(Fore.YELLOW + f"Unknown command: /{cmd}" + Style.RESET_ALL)
-            else:
-                clear_input_line()
-                sock.sendall(message.encode())
-        except:
-            break
+                    self.log(message)
+            except:
+                self.log("Disconnected from server", Fore.RED)
+                self.connected = False
+                break
 
-def start_client():
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect((HOST, PORT))
+    def send_messages(self):
+        try:
+            while self.connected:
+                # Using select for non-blocking input
+                rlist, _, _ = select.select([sys.stdin, self.sock], [], [], 0.1)
 
-    print(Fore.MAGENTA + "Connected to chat server." + Style.RESET_ALL)
-    thread = threading.Thread(target=recieve_messages, args=(sock, ), daemon=True)
-    thread.start()
+                if sys.stdin in rlist:
+                    message = input()
+                    clear_input_line()
+                    self.sock.sendall(message.encode())
 
-    send_messages(sock)
+                if not self.connected:
+                    break
+        except KeyboardInterrupt:
+            pass
+
+    def connect(self):
+        try:
+            self.sock.connect((self.host, self.port))
+            self.connected = True
+            self.log("Connected to chat server", Fore.MAGENTA)
+        except Exception as e:
+            self.log(f"Error connecting to the server: {str(e)}", Fore.RED)
+            exit(1)
+
+    def run(self):
+        self.connect()
+        threading.Thread(target=self.recieve_messages, daemon=True).start()
+        self.send_messages()
+        self.sock.close()
 
 if __name__ == "__main__":
-    start_client()
-            
+    client = ChatClient(host='0.0.0.0', port=9000)
+    client.run()
