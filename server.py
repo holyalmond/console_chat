@@ -45,6 +45,7 @@ class ClientHandler:
         self.conn = conn
         self.addr = addr
         self.username = str(addr)
+        self.color = "blue"
 
     def broadcast(self, message, sender_sock=None):
         for conn in list(self.server.clients.keys()):
@@ -80,7 +81,7 @@ class ClientHandler:
                 self.nickname = self.conn.recv(1024).decode().strip()
 
             self.server.used_nicknames.add(self.nickname)
-            self.server.clients[self.conn] = {"nickname": self.nickname, "color": "blue"}
+            self.server.clients[self.conn] = {"nickname": self.nickname, "color": self.color}
 
             self.broadcast(Fore.GREEN + f"{self.nickname} joined" + Style.RESET_ALL, self.conn)
             self.conn.send((Fore.LIGHTGREEN_EX + "Welcome! Type /help to see available commands" + Style.RESET_ALL).encode())
