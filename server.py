@@ -65,7 +65,7 @@ class ClientHandler:
         handler = get_command(cmd)
         if handler:
             try:
-                handler(self.server, self, *args)
+                handler(self.server, self, args)
             except Exception:
                 logger.exception(f"Error executing command: /{cmd}")
         else:
