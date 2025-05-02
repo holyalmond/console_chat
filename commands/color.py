@@ -1,7 +1,7 @@
 from commands.base import command
 from utils.visuals import color_map
 
-@command(name="setcolor", description="Set nickname color")
+@command(name="color", description="Set nickname color")
 def set_color(server, client, input_color):
     if input_color:
         color = input_color
