@@ -44,7 +44,7 @@ class ClientHandler:
         self.server = server
         self.conn = conn
         self.addr = addr
-        self.username = str(addr)
+        self.nickname = None
         self.color = "blue"
 
     def broadcast(self, message, sender_sock=None):
@@ -73,15 +73,7 @@ class ClientHandler:
 
     def handle_client(self):
         try:
-            self.conn.send("Enter your nickname:".encode())
-            self.nickname = self.conn.recv(1024).decode().strip()
-
-            while self.nickname in self.server.used_nicknames:
-                self.conn.send("Nickname is already taken. Choose another one:".encode())
-                self.nickname = self.conn.recv(1024).decode().strip()
-
-            self.server.used_nicknames.add(self.nickname)
-            self.server.clients[self.conn] = {"nickname": self.nickname, "color": self.color}
+            get_command("nickname")(self.server, self)
 
             self.broadcast(Fore.GREEN + f"{self.nickname} joined" + Style.RESET_ALL, self.conn)
             self.conn.send((Fore.LIGHTGREEN_EX + "Welcome! Type /help to see available commands" + Style.RESET_ALL).encode())
