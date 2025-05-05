@@ -62,11 +62,14 @@ class ClientHandler:
         parts = message[1:].split(maxsplit=1)
         if parts:
             cmd = parts[0].lower()
-            args = parts[1] if len(parts) > 1 else ""
+            args = parts[1] if len(parts) > 1 else None
             handler = get_command(cmd)
             if handler:
                 try:
-                    handler(self.server, self, args)
+                    if args is None:
+                        handler(self.server, self)
+                    else:
+                        handler(self.server, self, args)
                 except Exception:
                     logger.exception(f"Error executing command: /{cmd}")
             else:
