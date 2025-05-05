@@ -60,16 +60,19 @@ class ClientHandler:
 
     def handle_command(self, message: str):
         parts = message[1:].split(maxsplit=1)
-        cmd = parts[0].lower()
-        args = parts[1] if len(parts) > 1 else ""
-        handler = get_command(cmd)
-        if handler:
-            try:
-                handler(self.server, self, args)
-            except Exception:
-                logger.exception(f"Error executing command: /{cmd}")
+        if parts:
+            cmd = parts[0].lower()
+            args = parts[1] if len(parts) > 1 else ""
+            handler = get_command(cmd)
+            if handler:
+                try:
+                    handler(self.server, self, args)
+                except Exception:
+                    logger.exception(f"Error executing command: /{cmd}")
+            else:
+                self.broadcast(Fore.YELLOW + f"Unknown command: /{cmd}" + Style.RESET_ALL)
         else:
-            self.broadcast(Fore.YELLOW + f"Unknown command: /{cmd}" + Style.RESET_ALL)
+            self.broadcast(Fore.YELLOW + "You haven't provided a command" + Style.RESET_ALL)
 
     def handle_client(self):
         try:
