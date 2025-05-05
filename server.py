@@ -76,7 +76,7 @@ class ClientHandler:
 
     def handle_client(self):
         try:
-            get_command("nickname")(self.server, self)
+            get_command("nick")(self.server, self)
 
             self.broadcast(Fore.GREEN + f"{self.nickname} joined" + Style.RESET_ALL, self.conn)
             self.conn.send((Fore.LIGHTGREEN_EX + "Welcome! Type /help to see available commands" + Style.RESET_ALL).encode())

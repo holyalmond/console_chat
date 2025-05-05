@@ -1,6 +1,6 @@
 from commands.base import command
 
-@command(name="nickname", description="Set your nickname")
+@command(name="nick", description="Set your nickname")
 def nick(server, client, *args):    
     client.conn.send("Enter your nickname:".encode())
     client.nickname = client.conn.recv(1024).decode().strip()
