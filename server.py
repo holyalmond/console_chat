@@ -47,16 +47,25 @@ class ClientHandler:
         self.nickname = None
         self.color = "blue"
 
-    def broadcast(self, message, sender_sock=None):
-        for conn in list(self.server.clients.keys()):
-            if conn != sender_sock:
-                try:
-                    conn.sendall(message.encode())
-                except Exception:
-                    logger.exception("Error broadcasting message")
-                    conn.close()
-                    if conn in self.server.clients:
-                        del self.server.clients[conn]
+    def broadcast(self, message, sender_sock=None, receiver_sock=None):
+        if receiver_sock:
+            try:
+                receiver_sock.sendall(message.encode())
+            except Exception:
+                logger.exception("Error sending private message")
+                receiver_sock.close()
+                if receiver_sock in self.server.clients:
+                    del self.server.clients[receiver_sock]
+        else:
+            for conn in list(self.server.clients.keys()):
+                if conn != sender_sock:
+                    try:
+                        conn.sendall(message.encode())
+                    except Exception:
+                        logger.exception("Error broadcasting message")
+                        conn.close()
+                        if conn in self.server.clients:
+                            del self.server.clients[conn]
 
     def handle_command(self, message: str):
         parts = message[1:].split(maxsplit=1)
