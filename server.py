@@ -44,43 +44,51 @@ class ClientHandler:
         self.server = server
         self.conn = conn
         self.addr = addr
-        self.username = str(addr)
+        self.nickname = None
+        self.color = "blue"
 
-    def broadcast(self, message, sender_sock=None):
-        for conn in list(self.server.clients.keys()):
-            if conn != sender_sock:
-                try:
-                    conn.sendall(message.encode())
-                except Exception:
-                    logger.exception("Error broadcasting message")
-                    conn.close()
-                    if conn in self.server.clients:
-                        del self.server.clients[conn]
+    def broadcast(self, message, sender_sock=None, receiver_sock=None):
+        if receiver_sock:
+            try:
+                receiver_sock.sendall(message.encode())
+            except Exception:
+                logger.exception("Error sending private message")
+                receiver_sock.close()
+                if receiver_sock in self.server.clients:
+                    del self.server.clients[receiver_sock]
+        else:
+            for conn in list(self.server.clients.keys()):
+                if conn != sender_sock:
+                    try:
+                        conn.sendall(message.encode())
+                    except Exception:
+                        logger.exception("Error broadcasting message")
+                        conn.close()
+                        if conn in self.server.clients:
+                            del self.server.clients[conn]
 
     def handle_command(self, message: str):
         parts = message[1:].split(maxsplit=1)
-        cmd = parts[0].lower()
-        args = parts[1] if len(parts) > 1 else ""
-        handler = get_command(cmd)
-        if handler:
-            try:
-                handler(self.server, self, *args)
-            except Exception:
-                logger.exception(f"Error executing command: /{cmd}")
+        if parts:
+            cmd = parts[0].lower()
+            args = parts[1] if len(parts) > 1 else None
+            handler = get_command(cmd)
+            if handler:
+                try:
+                    if args is None:
+                        handler(self.server, self)
+                    else:
+                        handler(self.server, self, args)
+                except Exception:
+                    logger.exception(f"Error executing command: /{cmd}")
+            else:
+                self.broadcast(Fore.YELLOW + f"Unknown command: /{cmd}" + Style.RESET_ALL)
         else:
-            self.broadcast(Fore.YELLOW + f"Unknown command: /{cmd}" + Style.RESET_ALL)
+            self.broadcast(Fore.YELLOW + "You haven't provided a command" + Style.RESET_ALL)
 
     def handle_client(self):
         try:
-            self.conn.send("Enter your nickname:".encode())
-            self.nickname = self.conn.recv(1024).decode().strip()
-
-            while self.nickname in self.server.used_nicknames:
-                self.conn.send("Nickname is already taken. Choose another one:".encode())
-                self.nickname = self.conn.recv(1024).decode().strip()
-
-            self.server.used_nicknames.add(self.nickname)
-            self.server.clients[self.conn] = {"nickname": self.nickname, "color": "blue"}
+            get_command("nick")(self.server, self)
 
             self.broadcast(Fore.GREEN + f"{self.nickname} joined" + Style.RESET_ALL, self.conn)
             self.conn.send((Fore.LIGHTGREEN_EX + "Welcome! Type /help to see available commands" + Style.RESET_ALL).encode())
