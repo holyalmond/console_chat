@@ -8,6 +8,7 @@ def set_color(server, client, input_color):
         if color in color_map:
             client.color = color
             server.clients[client.conn]["color"] = client.color
+            client.conn.send("Color was set successfully.".encode())
             return
         else:
             client.conn.send(f"Invalid or taken color. Choose from: {', '.join(color_map)}".encode())
@@ -19,4 +20,5 @@ def set_color(server, client, input_color):
             color = client.conn.recv(1024).decode().strip().lower()
         client.color = color
         server.clients[client.conn]["color"] = client.color
+        client.conn.send("Color was set successfully.".encode())
         return

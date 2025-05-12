@@ -82,7 +82,7 @@ class ClientHandler:
                 except Exception:
                     logger.exception(f"Error executing command: /{cmd}")
             else:
-                self.broadcast(Fore.YELLOW + f"Unknown command: /{cmd}" + Style.RESET_ALL)
+                self.broadcast(Fore.YELLOW + f"Unknown command: /{cmd}. Use /help for available commands." + Style.RESET_ALL)
         else:
             self.broadcast(Fore.YELLOW + "You haven't provided a command" + Style.RESET_ALL)
 
