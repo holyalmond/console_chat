@@ -6,8 +6,8 @@ def validate_nickname(nickname, current_nickname, used_nicknames):
     if nickname.startswith('/'):
         return False, "Nickname cannot start with '/' as it's reserved for commands. Enter your nickname:"
 
-    if not re.match(r'^.{3,15}$', nickname):
-        return False, "Nickname must be between 3 and 15 characters. Enter your nickname:"
+    if not re.match(r'^.{3,15}$', nickname) or ' ' in nickname:
+        return False, "Nickname must be between 3 and 15 characters and shouldn't contain spaces. Enter your nickname:"
 
     if nickname in used_nicknames and nickname != current_nickname:
         return False, "Nickname is already taken. Enter your nickname:"
