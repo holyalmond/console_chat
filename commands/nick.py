@@ -18,7 +18,8 @@ def validate_nickname(nickname, current_nickname, used_nicknames):
 @command(name="nick", description="Set your nickname")
 def nick(server, client, *args):   
     current_nickname = client.nickname
-     
+    has_nickname = True if client.nickname else False
+    
     if args:
         client.nickname = args[0]
     else:
@@ -33,5 +34,7 @@ def nick(server, client, *args):
             client.conn.send(message.encode())
             client.nickname = client.conn.recv(1024).decode().strip()
 
+    if has_nickname:
+        client.conn.send("Nickname was set successfully.".encode())
     server.used_nicknames.add(client.nickname)
     server.clients[client.conn] = {"nickname": client.nickname, "color": client.color}
